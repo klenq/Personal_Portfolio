@@ -16,7 +16,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 DEPLOY_DIR="/var/www/portfolio"
-BACKEND_JAR="backend/target/portfolio-backend.jar"
+BACKEND_JAR="backend/target/portfolio-backend-1.0.0.jar"
 FRONTEND_DIST="frontend/dist"
 
 # Step 1: Build Backend
