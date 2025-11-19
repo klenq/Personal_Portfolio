@@ -1,8 +1,10 @@
 package com.portfolio.config;
 
+import com.portfolio.model.Experience;
 import com.portfolio.model.PersonalInfo;
 import com.portfolio.model.Project;
 import com.portfolio.model.User;
+import com.portfolio.repository.ExperienceRepository;
 import com.portfolio.repository.PersonalInfoRepository;
 import com.portfolio.repository.ProjectRepository;
 import com.portfolio.repository.UserRepository;
@@ -16,13 +18,16 @@ public class DataInitializer implements CommandLineRunner {
     
     @Autowired
     private UserRepository userRepository;
-    
+
     @Autowired
     private ProjectRepository projectRepository;
-    
+
     @Autowired
     private PersonalInfoRepository personalInfoRepository;
-    
+
+    @Autowired
+    private ExperienceRepository experienceRepository;
+
     @Autowired
     private PasswordEncoder passwordEncoder;
     
@@ -95,6 +100,35 @@ public class DataInitializer implements CommandLineRunner {
             projectRepository.save(project3);
             
             System.out.println("Sample projects created");
+        }
+
+        // Create sample experiences if not exists
+        if (experienceRepository.findAll().isEmpty()) {
+            Experience exp1 = new Experience();
+            exp1.setTitle("Full Stack Developer");
+            exp1.setCompany("Personal Projects");
+            exp1.setStartDate("2024");
+            exp1.setEndDate("Present");
+            exp1.setDescription("Building elegant, accessible web applications with modern technologies. Focus on clean architecture, user experience, and robust functionality.");
+            exp1.setTechnologies("React, Spring Boot, Tailwind CSS, PostgreSQL");
+            exp1.setCompanyUrl("");
+            exp1.setDisplayOrder(1);
+            exp1.setStatus("active");
+            experienceRepository.save(exp1);
+
+            Experience exp2 = new Experience();
+            exp2.setTitle("Software Engineer Intern");
+            exp2.setCompany("Tech Company");
+            exp2.setStartDate("2023");
+            exp2.setEndDate("2024");
+            exp2.setDescription("Developed and maintained web applications using modern frameworks. Collaborated with cross-functional teams to deliver high-quality software solutions.");
+            exp2.setTechnologies("JavaScript, React, Node.js, MongoDB");
+            exp2.setCompanyUrl("https://example.com");
+            exp2.setDisplayOrder(2);
+            exp2.setStatus("active");
+            experienceRepository.save(exp2);
+
+            System.out.println("Sample experiences created");
         }
     }
 }

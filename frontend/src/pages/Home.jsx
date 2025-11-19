@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import personalInfoService from '../services/personalInfoService';
 import projectService from '../services/projectService';
+import experienceService from '../services/experienceService';
 import Loading from '../components/common/Loading';
 
 const Home = () => {
   const [personalInfo, setPersonalInfo] = useState(null);
   const [projects, setProjects] = useState([]);
+  const [experiences, setExperiences] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeSection, setActiveSection] = useState('about');
 
@@ -35,12 +37,14 @@ const Home = () => {
 
   const loadData = async () => {
     try {
-      const [infoResponse, projectsResponse] = await Promise.all([
+      const [infoResponse, projectsResponse, experiencesResponse] = await Promise.all([
         personalInfoService.getPersonalInfo(),
-        projectService.getFeaturedProjects()
+        projectService.getFeaturedProjects(),
+        experienceService.getAllExperiences()
       ]);
       setPersonalInfo(infoResponse.data);
       setProjects(projectsResponse.data);
+      setExperiences(experiencesResponse.data);
     } catch (error) {
       console.error('Error loading data:', error);
       // Set fallback data if API fails
@@ -54,6 +58,7 @@ const Home = () => {
         resumeUrl: '/resume.pdf'
       });
       setProjects([]);
+      setExperiences([]);
     } finally {
       setLoading(false);
     }
@@ -216,60 +221,69 @@ const Home = () => {
               </div>
 
               <ol className="group/list space-y-12">
-                {/* Sample Experience Card */}
-                <li>
-                  <div className="group relative grid grid-cols-1 sm:grid-cols-8 gap-4 sm:gap-6
-                              p-6 lg:p-8
-                              bg-dark-secondary border-2 border-cream rounded-sm
-                              shadow-geometric-md
-                              transition-all duration-200
-                              hover:translate-x-[4px] hover:-translate-y-[4px]
-                              hover:shadow-geometric-lg
-                              hover:bg-dark-tertiary">
+                {experiences.map(experience => (
+                  <li key={experience.id}>
+                    <div className="group relative grid grid-cols-1 sm:grid-cols-8 gap-4 sm:gap-6
+                                p-6 lg:p-8
+                                bg-dark-secondary border-2 border-cream rounded-sm
+                                shadow-geometric-md
+                                transition-all duration-200
+                                hover:translate-x-[4px] hover:-translate-y-[4px]
+                                hover:shadow-geometric-lg
+                                hover:bg-dark-tertiary">
 
-                    <header className="sm:col-span-2 mb-2 sm:mb-0">
-                      <p className="font-mono text-xs font-semibold uppercase tracking-wide text-slate-500">
-                        2024 — Present
-                      </p>
-                    </header>
+                      <header className="sm:col-span-2 mb-2 sm:mb-0">
+                        <p className="font-mono text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          {experience.startDate} — {experience.endDate}
+                        </p>
+                      </header>
 
-                    <div className="sm:col-span-6">
-                      <h3 className="font-mono text-xl lg:text-2xl font-medium text-cream
-                                     group-hover:text-teal-accent transition-colors">
-                        Full Stack Developer
-                        <svg className="inline-block w-5 h-5 ml-2 transition-transform
-                                       group-hover:translate-x-1 group-hover:-translate-y-1"
-                             fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                          <path fillRule="evenodd" d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z" clipRule="evenodd" />
-                        </svg>
-                      </h3>
+                      <div className="sm:col-span-6">
+                        {experience.companyUrl ? (
+                          <a
+                            href={experience.companyUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-block"
+                          >
+                            <h3 className="font-mono text-xl lg:text-2xl font-medium text-cream
+                                         group-hover:text-teal-accent transition-colors">
+                              {experience.title}
+                              <svg className="inline-block w-5 h-5 ml-2 transition-transform
+                                           group-hover:translate-x-1 group-hover:-translate-y-1"
+                                   fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                <path fillRule="evenodd" d="M5.22 14.78a.75.75 0 001.06 0l7.22-7.22v5.69a.75.75 0 001.5 0v-7.5a.75.75 0 00-.75-.75h-7.5a.75.75 0 000 1.5h5.69l-7.22 7.22a.75.75 0 000 1.06z" clipRule="evenodd" />
+                              </svg>
+                            </h3>
+                          </a>
+                        ) : (
+                          <h3 className="font-mono text-xl lg:text-2xl font-medium text-cream">
+                            {experience.title}
+                          </h3>
+                        )}
 
-                      <p className="mt-1 text-sm font-medium text-slate-300">
-                        Personal Projects
-                      </p>
+                        <p className="mt-1 text-sm font-medium text-slate-300">
+                          {experience.company}
+                        </p>
 
-                      <p className="mt-3 text-sm leading-relaxed">
-                        Building elegant, accessible web applications with modern technologies.
-                        Focus on clean architecture, user experience, and robust functionality.
-                      </p>
+                        <p className="mt-3 text-sm leading-relaxed">
+                          {experience.description}
+                        </p>
 
-                      <ul className="flex flex-wrap gap-2 mt-4" aria-label="Technologies used">
-                        <li className="px-3 py-1 bg-teal-accent/10 border border-teal-accent rounded-sm
-                                   text-xs font-medium text-teal-accent font-mono uppercase tracking-wide">
-                          React
-                        </li>
-                        <li className="px-3 py-1 bg-teal-accent/10 border border-teal-accent rounded-sm
-                                   text-xs font-medium text-teal-accent font-mono uppercase tracking-wide">
-                          Spring Boot
-                        </li>
-                        <li className="px-3 py-1 bg-teal-accent/10 border border-teal-accent rounded-sm
-                                   text-xs font-medium text-teal-accent font-mono uppercase tracking-wide">
-                          Tailwind
-                        </li>
-                      </ul>
+                        {experience.technologies && (
+                          <ul className="flex flex-wrap gap-2 mt-4" aria-label="Technologies used">
+                            {experience.technologies.split(',').map((tech, index) => (
+                              <li key={index} className="px-3 py-1 bg-teal-accent/10 border border-teal-accent rounded-sm
+                                         text-xs font-medium text-teal-accent font-mono uppercase tracking-wide">
+                                {tech.trim()}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </li>
+                  </li>
+                ))}
               </ol>
 
               {personalInfo.resumeUrl && (
