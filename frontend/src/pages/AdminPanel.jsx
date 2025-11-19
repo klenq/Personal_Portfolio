@@ -253,8 +253,12 @@ const AdminPanel = () => {
                     <span className="info-value">{personalInfo.title || 'Not set'}</span>
                   </div>
                   <div className="info-row">
-                    <span className="info-label">Bio:</span>
+                    <span className="info-label">Bio (Tagline):</span>
                     <span className="info-value">{personalInfo.bio || 'Not set'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">About:</span>
+                    <span className="info-value" style={{ whiteSpace: 'pre-wrap' }}>{personalInfo.about || 'Not set'}</span>
                   </div>
                 </div>
 

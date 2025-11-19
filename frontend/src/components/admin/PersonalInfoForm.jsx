@@ -6,6 +6,7 @@ const PersonalInfoForm = ({ personalInfo, onSubmit, onCancel }) => {
     name: '',
     title: '',
     bio: '',
+    about: '',
     email: '',
     phone: '',
     linkedinUrl: '',
@@ -20,6 +21,7 @@ const PersonalInfoForm = ({ personalInfo, onSubmit, onCancel }) => {
         name: personalInfo.name || '',
         title: personalInfo.title || '',
         bio: personalInfo.bio || '',
+        about: personalInfo.about || '',
         email: personalInfo.email || '',
         phone: personalInfo.phone || '',
         linkedinUrl: personalInfo.linkedinUrl || '',
@@ -72,13 +74,25 @@ const PersonalInfoForm = ({ personalInfo, onSubmit, onCancel }) => {
         </div>
 
         <div className="form-group">
-          <label>Bio *</label>
+          <label>Bio (Tagline/Short Description) *</label>
           <textarea
             name="bio"
             value={formData.bio}
             onChange={handleChange}
-            rows="5"
-            placeholder="Write a brief description about yourself..."
+            rows="2"
+            placeholder="A short tagline or one-line description (appears below your name)"
+            required
+          />
+        </div>
+
+        <div className="form-group">
+          <label>About (Full Description) *</label>
+          <textarea
+            name="about"
+            value={formData.about}
+            onChange={handleChange}
+            rows="8"
+            placeholder="Write a detailed description about yourself, your background, and interests. This appears in the About section."
             required
           />
         </div>

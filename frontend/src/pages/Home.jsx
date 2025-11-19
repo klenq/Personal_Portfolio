@@ -76,8 +76,11 @@ const Home = () => {
     );
   }
 
-  // Split bio into paragraphs if needed
+  // Bio is the short tagline, About is the full description
   const bioText = personalInfo.bio || 'Building elegant, accessible web experiences with a focus on clean design, robust functionality, and pixel-perfect execution.';
+  const aboutText = (personalInfo.about && personalInfo.about.trim() !== '')
+    ? personalInfo.about
+    : 'Back in 2023, I decided to dive into the world of web development and discovered my passion for creating beautiful, functional applications. Fast forward to today, I\'ve had the privilege of building software that helps businesses grow and users achieve their goals.\n\nMy main focus these days is building accessible, user-centered products with modern technologies. I\'m passionate about writing clean, maintainable code and staying up-to-date with the latest web development trends.\n\nWhen I\'m not coding, you\'ll find me exploring new technologies, contributing to open-source projects, or sharing knowledge with the developer community.';
 
   return (
     <>
@@ -205,9 +208,11 @@ const Home = () => {
               </div>
 
               <div className="group/list">
-                <p className="mb-4 text-base leading-relaxed">
-                  {bioText}
-                </p>
+                {aboutText.split('\n\n').map((paragraph, index) => (
+                  <p key={index} className="mb-4 text-base leading-relaxed">
+                    {paragraph}
+                  </p>
+                ))}
               </div>
             </section>
 

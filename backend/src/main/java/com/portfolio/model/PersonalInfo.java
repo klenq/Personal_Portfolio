@@ -24,10 +24,13 @@ public class PersonalInfo {
     
     @Column(length = 255)
     private String title;
-    
+
     @Column(columnDefinition = "TEXT")
     private String bio;
-    
+
+    @Column(columnDefinition = "TEXT")
+    private String about;
+
     @Column(length = 255)
     private String email;
     
