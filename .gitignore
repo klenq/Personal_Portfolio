@@ -207,3 +207,5 @@ frontend/dist/
 *.jar
 !backend/src/
 !frontend/src/
+
+backend/src/main/resources/application-prod.properties
