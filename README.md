@@ -66,8 +66,8 @@ mvn --version
 ### 1. Clone the Repository
 
 ```bash
-git clone <your-repository-url>
-cd Personal_Profolio
+git clone git@github.com:klenq/Personal_Portfolio.git
+cd Personal_Portfolio
 ```
 
 ### 2. Install Frontend Dependencies
