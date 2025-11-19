@@ -171,25 +171,59 @@ spring.datasource.password=
 # spring.datasource.password=your_password
 ```
 
-## Building for Production
+## Production Deployment
 
-### Frontend Production Build
+This project uses a **local build, remote deploy** strategy for production.
 
+### First-Time Server Setup
+
+**On the server:**
 ```bash
-cd frontend
-npm run build
+# Copy and run setup script
+scp server-setup.sh root@YOUR_SERVER_IP:/root/
+ssh root@YOUR_SERVER_IP
+chmod +x server-setup.sh
+./server-setup.sh
 ```
 
-The optimized files will be in `frontend/dist/`
+This will:
+- Install Java 17, MySQL, Nginx
+- Create database and user
+- Configure systemd service
+- Setup Nginx reverse proxy
 
-### Backend Production Build
+### Deploy to Production
 
+**On your local machine:**
 ```bash
-cd backend
-mvn clean package
+# Build locally and deploy to server
+chmod +x local-deploy.sh
+./local-deploy.sh
 ```
 
-The JAR file will be in `backend/target/portfolio-backend.jar`
+This script:
+- Builds backend with Maven
+- Builds frontend with Vite
+- Uploads to server
+- Restarts services
+- Cleans up temporary files
+
+### Start Backend Service (First Deployment)
+
+**On the server:**
+```bash
+sudo systemctl start portfolio-backend
+sudo systemctl status portfolio-backend
+```
+
+### Subsequent Deployments
+
+Just run this on your local machine:
+```bash
+./local-deploy.sh
+```
+
+For complete deployment instructions, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md)
 
 ## Features Guide
 

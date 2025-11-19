@@ -199,3 +199,11 @@ vite.config.ts.timestamp-*
 
 # Personal Files
 personal/
+
+# Deployment artifacts
+deploy-temp/
+backend/target/
+frontend/dist/
+*.jar
+!backend/src/
+!frontend/src/
