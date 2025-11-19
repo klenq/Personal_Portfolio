@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import ProjectForm from '../components/admin/ProjectForm';
 import ExperienceForm from '../components/admin/ExperienceForm';
+import PersonalInfoForm from '../components/admin/PersonalInfoForm';
 import Loading from '../components/common/Loading';
 import projectService from '../services/projectService';
 import experienceService from '../services/experienceService';
+import personalInfoService from '../services/personalInfoService';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import './AdminPanel.css';
 
@@ -11,6 +13,7 @@ const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('projects');
   const [projects, setProjects] = useState([]);
   const [experiences, setExperiences] = useState([]);
+  const [personalInfo, setPersonalInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProject, setEditingProject] = useState(null);
@@ -19,6 +22,7 @@ const AdminPanel = () => {
   useEffect(() => {
     loadProjects();
     loadExperiences();
+    loadPersonalInfo();
   }, []);
 
   const loadProjects = async () => {
@@ -125,6 +129,33 @@ const AdminPanel = () => {
     }
   };
 
+  const loadPersonalInfo = async () => {
+    try {
+      const response = await personalInfoService.getPersonalInfo();
+      setPersonalInfo(response.data);
+    } catch (error) {
+      console.error('Error loading personal info:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditPersonalInfo = () => {
+    setShowForm(true);
+  };
+
+  const handleSubmitPersonalInfo = async (infoData) => {
+    try {
+      await personalInfoService.saveOrUpdatePersonalInfo(infoData);
+      setShowForm(false);
+      loadPersonalInfo();
+      alert('Personal information updated successfully!');
+    } catch (error) {
+      console.error('Error saving personal info:', error);
+      alert('Failed to save personal information');
+    }
+  };
+
   if (loading) return <Loading />;
 
   return (
@@ -133,6 +164,17 @@ const AdminPanel = () => {
         <div className="admin-header">
           <h1>Admin Panel</h1>
           <div className="tab-buttons">
+            <button
+              onClick={() => {
+                setActiveTab('personal-info');
+                setShowForm(false);
+                setEditingProject(null);
+                setEditingExperience(null);
+              }}
+              className={`tab-btn ${activeTab === 'personal-info' ? 'active' : ''}`}
+            >
+              Personal Info
+            </button>
             <button
               onClick={() => {
                 setActiveTab('projects');
@@ -156,13 +198,23 @@ const AdminPanel = () => {
               Experiences
             </button>
           </div>
-          <button
-            onClick={activeTab === 'projects' ? handleAddProject : handleAddExperience}
-            className="btn-add"
-          >
-            Add New {activeTab === 'projects' ? 'Project' : 'Experience'}
-          </button>
+          {activeTab !== 'personal-info' && (
+            <button
+              onClick={activeTab === 'projects' ? handleAddProject : handleAddExperience}
+              className="btn-add"
+            >
+              Add New {activeTab === 'projects' ? 'Project' : 'Experience'}
+            </button>
+          )}
         </div>
+
+        {showForm && activeTab === 'personal-info' && (
+          <PersonalInfoForm
+            personalInfo={personalInfo}
+            onSubmit={handleSubmitPersonalInfo}
+            onCancel={handleCancel}
+          />
+        )}
 
         {showForm && activeTab === 'projects' && (
           <ProjectForm
@@ -178,6 +230,68 @@ const AdminPanel = () => {
             onSubmit={handleSubmitExperience}
             onCancel={handleCancel}
           />
+        )}
+
+        {activeTab === 'personal-info' && (
+          <div className="projects-table">
+            <div className="personal-info-header">
+              <h2>Personal Information</h2>
+              <button onClick={handleEditPersonalInfo} className="btn-add">
+                Edit Personal Info
+              </button>
+            </div>
+            {personalInfo && !showForm && (
+              <div className="personal-info-display">
+                <div className="info-section">
+                  <h3>Basic Information</h3>
+                  <div className="info-row">
+                    <span className="info-label">Name:</span>
+                    <span className="info-value">{personalInfo.name || 'Not set'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Title:</span>
+                    <span className="info-value">{personalInfo.title || 'Not set'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Bio:</span>
+                    <span className="info-value">{personalInfo.bio || 'Not set'}</span>
+                  </div>
+                </div>
+
+                <div className="info-section">
+                  <h3>Contact Information</h3>
+                  <div className="info-row">
+                    <span className="info-label">Email:</span>
+                    <span className="info-value">{personalInfo.email || 'Not set'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Phone:</span>
+                    <span className="info-value">{personalInfo.phone || 'Not set'}</span>
+                  </div>
+                </div>
+
+                <div className="info-section">
+                  <h3>Links & URLs</h3>
+                  <div className="info-row">
+                    <span className="info-label">LinkedIn:</span>
+                    <span className="info-value">{personalInfo.linkedinUrl || 'Not set'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">GitHub:</span>
+                    <span className="info-value">{personalInfo.githubUrl || 'Not set'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Profile Image:</span>
+                    <span className="info-value">{personalInfo.profileImageUrl || 'Not set'}</span>
+                  </div>
+                  <div className="info-row">
+                    <span className="info-label">Resume:</span>
+                    <span className="info-value">{personalInfo.resumeUrl || 'Not set'}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {activeTab === 'projects' && (

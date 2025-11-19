@@ -55,6 +55,7 @@ public class DataInitializer implements CommandLineRunner {
             info.setLinkedinUrl("https://www.linkedin.com/in/jianyu-qiu/");
             info.setGithubUrl("https://github.com/klenq");
             info.setProfileImageUrl("https://via.placeholder.com/300");
+            info.setResumeUrl("/resume.pdf");
             personalInfoRepository.save(info);
             System.out.println("Default personal info created");
         }
