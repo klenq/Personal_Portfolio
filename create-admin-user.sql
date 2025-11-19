@@ -2,7 +2,7 @@
 -- Username: admin
 -- Password: admin123
 
-USE portfolio;
+USE portfoliodb;
 
 -- Delete existing admin user if exists (to avoid duplicates)
 DELETE FROM users WHERE username = 'admin';

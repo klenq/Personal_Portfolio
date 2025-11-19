@@ -69,8 +69,8 @@ echo ""
 # ============================================================================
 echo -e "${BLUE}[3/7] 🗄️  Setting up MySQL database...${NC}"
 
-read -p "Enter database name [portfolio]: " DB_NAME
-DB_NAME=${DB_NAME:-portfolio}
+read -p "Enter database name [portfoliodb]: " DB_NAME
+DB_NAME=${DB_NAME:-portfoliodb}
 
 read -p "Enter database username [p_user]: " DB_USER
 DB_USER=${DB_USER:-p_user}

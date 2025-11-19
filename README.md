@@ -166,8 +166,8 @@ spring.datasource.username=sa
 spring.datasource.password=
 
 # For MySQL (production)
-# spring.datasource.url=jdbc:mysql://localhost:3306/portfolio
-# spring.datasource.username=your_username
+# spring.datasource.url=jdbc:mysql://localhost:3306/portfoliodb
+# spring.datasource.username=p_user
 # spring.datasource.password=your_password
 ```
 
