@@ -13,7 +13,8 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 # Configuration
-read -p "Enter server IP/hostname: " SERVER_HOST
+read -p "Enter server IP/hostname [159.89.148.52]: " SERVER_HOST
+SERVER_HOST=${SERVER_HOST:-159.89.148.52}
 read -p "Enter SSH user [root]: " SSH_USER
 SSH_USER=${SSH_USER:-root}
 

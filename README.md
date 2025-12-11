@@ -17,7 +17,7 @@ A Swiss-inspired modernism, Programmers portfolio website featuring a dark geome
 ### Backend
 - 🔐 **Secure Authentication** - JWT-based admin authentication
 - 📝 **Content Management** - Admin panel to manage projects and personal info
-- 💾 **Database Support** - H2 (development) and MySQL (production)
+- 💾 **Database Support** - H2 (development) and Prisma-managed Postgres (production)
 - 🔄 **RESTful API** - Clean API architecture with proper separation of concerns
 
 ## Tech Stack
@@ -34,7 +34,7 @@ A Swiss-inspired modernism, Programmers portfolio website featuring a dark geome
 - Spring Boot 3.1.5
 - Spring Security with JWT
 - Spring Data JPA
-- H2 Database (dev) / MySQL (prod)
+- H2 Database (dev) / Prisma Postgres (prod)
 - Maven
 
 ## Prerequisites
@@ -165,10 +165,11 @@ spring.datasource.url=jdbc:h2:mem:portfoliodb
 spring.datasource.username=sa
 spring.datasource.password=
 
-# For MySQL (production)
-# spring.datasource.url=jdbc:mysql://localhost:3306/portfoliodb
-# spring.datasource.username=p_user
-# spring.datasource.password=your_password
+# For Prisma-managed Postgres (production)
+# spring.datasource.url=jdbc:postgresql://db.prisma.io:5432/postgres?sslmode=require
+# spring.datasource.username=YOUR_DATABASE_USER
+# spring.datasource.password=YOUR_DATABASE_PASSWORD
+# (or use SPRING_DATASOURCE_URL/DB_USERNAME/DB_PASSWORD env vars)
 ```
 
 ## Production Deployment
@@ -187,10 +188,10 @@ chmod +x server-setup.sh
 ```
 
 This will:
-- Install Java 17, MySQL, Nginx
-- Create database and user
-- Configure systemd service
-- Setup Nginx reverse proxy
+- Install Java 17, PostgreSQL client tools, and Nginx
+- Capture your Prisma Postgres credentials into `/var/www/portfolio/backend/.env`
+- Configure deployment directories and the systemd service
+- Set up the Nginx reverse proxy and firewall rules
 
 ### Deploy to Production
 

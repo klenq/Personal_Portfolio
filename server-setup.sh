@@ -45,12 +45,16 @@ if ! command -v java &> /dev/null || ! java -version 2>&1 | grep -q "17"; then
     sudo apt-get install -y openjdk-17-jre-headless
 fi
 
-# Check and install MySQL
-if ! command -v mysql &> /dev/null; then
-    echo "Installing MySQL..."
-    sudo apt-get install -y mysql-server
-    sudo systemctl start mysql
-    sudo systemctl enable mysql
+# Ensure Python 3 for parsing connection strings
+if ! command -v python3 &> /dev/null; then
+    echo "Installing Python 3..."
+    sudo apt-get install -y python3
+fi
+
+# Install PostgreSQL client utilities for remote database access
+if ! command -v psql &> /dev/null; then
+    echo "Installing PostgreSQL client tools..."
+    sudo apt-get install -y postgresql-client
 fi
 
 # Check and install Nginx
@@ -65,37 +69,64 @@ echo -e "${GREEN}✓ Dependencies installed${NC}"
 echo ""
 
 # ============================================================================
-# Step 3: Database Setup
+# Step 3: Prisma/Postgres Connection
 # ============================================================================
-echo -e "${BLUE}[3/7] 🗄️  Setting up MySQL database...${NC}"
-
-read -p "Enter database name [portfoliodb]: " DB_NAME
-DB_NAME=${DB_NAME:-portfoliodb}
-
-read -p "Enter database username [p_user]: " DB_USER
-DB_USER=${DB_USER:-p_user}
+echo -e "${BLUE}[3/7] 🗄️  Configuring Prisma Postgres connection...${NC}"
 
 while true; do
-    read -sp "Enter database password: " DB_PASS
+    read -rsp "Paste Prisma Postgres connection string (postgres://...): " RAW_DATABASE_URL
     echo ""
-    read -sp "Confirm password: " DB_PASS_CONFIRM
-    echo ""
-    if [ "$DB_PASS" = "$DB_PASS_CONFIRM" ]; then
+    RAW_DATABASE_URL=$(echo "$RAW_DATABASE_URL" | tr -d '[:space:]')
+    if [ -n "$RAW_DATABASE_URL" ]; then
         break
-    else
-        echo -e "${RED}Passwords don't match. Try again.${NC}"
     fi
+    echo -e "${YELLOW}Connection string required. Please try again.${NC}"
 done
 
-# Create database and user
-sudo mysql <<EOF
-CREATE DATABASE IF NOT EXISTS ${DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';
-GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USER}'@'localhost';
-FLUSH PRIVILEGES;
-EOF
+read -rsp "Paste Prisma Accelerate URL (prisma+postgres://... optional): " RAW_PRISMA_DATABASE_URL
+echo ""
+RAW_PRISMA_DATABASE_URL=$(echo "$RAW_PRISMA_DATABASE_URL" | tr -d '[:space:]')
 
-echo -e "${GREEN}✓ Database created${NC}"
+set +e
+PARSED_OUTPUT=$(python3 - "$RAW_DATABASE_URL" <<'PY'
+import sys
+from urllib.parse import urlparse
+
+url = sys.argv[1]
+parsed = urlparse(url)
+if parsed.scheme not in ("postgres", "postgresql"):
+    raise SystemExit("Connection string must start with postgres://")
+if not parsed.hostname:
+    raise SystemExit("Missing database host")
+dbname = parsed.path.lstrip("/")
+if not dbname:
+    raise SystemExit("Missing database name")
+port = parsed.port or 5432
+query = f"?{parsed.query}" if parsed.query else ""
+username = parsed.username or ""
+password = parsed.password or ""
+if not username or not password:
+    raise SystemExit("Username and password are required in the connection string")
+jdbc = f"jdbc:postgresql://{parsed.hostname}:{port}/{dbname}{query}"
+print(f"{jdbc}|{username}|{password}|{parsed.hostname}|{port}|{dbname}")
+PY
+)
+PARSE_EXIT=$?
+set -e
+
+if [ $PARSE_EXIT -ne 0 ]; then
+    echo -e "${RED}Unable to parse the connection string. Please verify it and re-run the script.${NC}"
+    exit 1
+fi
+
+SPRING_JDBC_URL=$(echo "$PARSED_OUTPUT" | cut -d'|' -f1)
+DB_USER=$(echo "$PARSED_OUTPUT" | cut -d'|' -f2)
+DB_PASS=$(echo "$PARSED_OUTPUT" | cut -d'|' -f3)
+POSTGRES_HOST=$(echo "$PARSED_OUTPUT" | cut -d'|' -f4)
+POSTGRES_PORT=$(echo "$PARSED_OUTPUT" | cut -d'|' -f5)
+POSTGRES_DB=$(echo "$PARSED_OUTPUT" | cut -d'|' -f6)
+
+echo -e "${GREEN}✓ Using Prisma Postgres at ${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}${NC}"
 echo ""
 
 # ============================================================================
@@ -119,12 +150,25 @@ echo -e "${BLUE}[5/7] ⚙️  Configuring backend environment...${NC}"
 # Generate JWT secret
 JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n')
 
-read -p "Enter your domain name (e.g., example.com): " DOMAIN_NAME
+DEFAULT_DOMAIN=$(hostname -I | awk '{print $1}')
+read -p "Enter your domain name or public IP [${DEFAULT_DOMAIN}]: " DOMAIN_NAME
+DOMAIN_NAME=${DOMAIN_NAME:-$DEFAULT_DOMAIN}
+
+if [[ $DOMAIN_NAME =~ ^[0-9.]+$ ]]; then
+    CORS_VALUES="http://${DOMAIN_NAME},https://${DOMAIN_NAME}"
+else
+    CORS_VALUES="http://${DOMAIN_NAME},https://${DOMAIN_NAME},http://www.${DOMAIN_NAME},https://www.${DOMAIN_NAME}"
+fi
 
 # Create .env file
 sudo tee /var/www/portfolio/backend/.env > /dev/null <<EOF
-# Database Configuration
-SPRING_DATASOURCE_URL=jdbc:mysql://localhost:3306/${DB_NAME}?useSSL=false&serverTimezone=UTC
+# External Database (Prisma)
+DATABASE_URL=${RAW_DATABASE_URL}
+POSTGRES_URL=${RAW_DATABASE_URL}
+PRISMA_DATABASE_URL=${RAW_PRISMA_DATABASE_URL}
+
+# Spring Boot DataSource
+SPRING_DATASOURCE_URL=${SPRING_JDBC_URL}
 DB_USERNAME=${DB_USER}
 DB_PASSWORD=${DB_PASS}
 
@@ -132,7 +176,7 @@ DB_PASSWORD=${DB_PASS}
 JWT_SECRET=${JWT_SECRET}
 
 # CORS Origins
-CORS_ORIGINS=http://${DOMAIN_NAME},https://${DOMAIN_NAME},http://www.${DOMAIN_NAME},https://www.${DOMAIN_NAME}
+CORS_ORIGINS=${CORS_VALUES}
 EOF
 
 sudo chown www-data:www-data /var/www/portfolio/backend/.env
@@ -149,7 +193,7 @@ echo -e "${BLUE}[6/7] 🔧 Creating systemd service...${NC}"
 sudo tee /etc/systemd/system/portfolio-backend.service > /dev/null <<'EOF'
 [Unit]
 Description=Portfolio Backend Service
-After=network.target mysql.service
+After=network.target
 
 [Service]
 Type=simple
@@ -265,7 +309,8 @@ echo -e "${GREEN}✓ Server Setup Complete!${NC}"
 echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 echo "Configuration Summary:"
-echo "  Database:    ${DB_NAME}"
+echo "  DB Host:     ${POSTGRES_HOST}"
+echo "  DB Name:     ${POSTGRES_DB}"
 echo "  DB User:     ${DB_USER}"
 echo "  Domain:      ${DOMAIN_NAME}"
 echo "  Frontend:    /var/www/portfolio/frontend"

@@ -1,8 +1,11 @@
--- Create Admin User for Portfolio Application
+-- Create Admin User for Portfolio Application (Postgres/Prisma)
 -- Username: admin
 -- Password: admin123
-
-USE portfoliodb;
+--
+-- Usage:
+--   psql "$DATABASE_URL" -f create-admin-user.sql
+-- or
+--   psql "postgres://USER:PASS@HOST:PORT/DB?sslmode=require" -f create-admin-user.sql
 
 -- Delete existing admin user if exists (to avoid duplicates)
 DELETE FROM users WHERE username = 'admin';
